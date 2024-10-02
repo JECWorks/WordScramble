@@ -35,6 +35,18 @@ struct ContentView: View {
             }
         }
     }
+    func testStrings() {
+        let word = "swift"
+        let checker = UITextChecker()
+        
+        let range = NSRange(location: 0, length: word.utf16.count)
+        let misspelledRange = checker.rangeOfMisspelledWord(in: word, range: range, startingAt: 0, wrap: false, language: "en")
+        
+        let allGood = misspelledRange.location == NSNotFound
+//        let letters = input.components(separatedBy: "\n")
+//        let letterrandom = letters.randomElement()
+//        let trimmed = letters.description.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
 }
 
 #Preview {
