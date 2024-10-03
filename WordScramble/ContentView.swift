@@ -8,44 +8,42 @@
 import SwiftUI
 
 struct ContentView: View {
-    let people = ["Finn", "Leia", "Luke", "Rey"]
+    @State private var usedWords = [String]()
+    @State private var rootWord = ""
+    @State private var newWord = ""
     
     var body: some View {
-        List {
-            Section("Section 1") {
-                Text("Static Row 1")
-                Text("Static Row 2")
-            }
-            Section("Section 2") {
-                ForEach(0..<5) {
-                    Text("Dynamic Row \($0)")
+        NavigationStack {
+            List {
+                Section {
+                    TextField("Enter a word", text: $newWord)
+                        .textInputAutocapitalization(.never)
+                }
+                
+                Section {
+                    ForEach(usedWords, id: \.self) { word in
+                        HStack {
+                            Image(systemName: "\(word.count).circle")
+                            Text(word)
+                        }
+                    }
                 }
             }
-        }
-        List(people, id: \.self) {
-            Text("Person: \($0)")
-        }
-        .padding()
-    }
-    func testBundles() {
-        if let fileURL = Bundle.main.url(forResource: "somefile", withExtension: "txt") {
-            // we found the file in our bundle!
-            if let fileContents = try? String(contentsOf: fileURL) {
-                // we loaded the file into a string
-            }
+            .navigationTitle(rootWord)
+            .onSubmit(addNewWord)
         }
     }
-    func testStrings() {
-        let word = "swift"
-        let checker = UITextChecker()
+    func addNewWord() {
+        let answer = newWord.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
         
-        let range = NSRange(location: 0, length: word.utf16.count)
-        let misspelledRange = checker.rangeOfMisspelledWord(in: word, range: range, startingAt: 0, wrap: false, language: "en")
+        guard answer.count > 0 else { return }
         
-        let allGood = misspelledRange.location == NSNotFound
-//        let letters = input.components(separatedBy: "\n")
-//        let letterrandom = letters.randomElement()
-//        let trimmed = letters.description.trimmingCharacters(in: .whitespacesAndNewlines)
+        // extra validation to come
+        withAnimation {
+            usedWords.insert(answer, at: 0)
+        }
+        
+        newWord = ""
     }
 }
 
