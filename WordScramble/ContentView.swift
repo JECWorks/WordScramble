@@ -16,29 +16,51 @@ struct ContentView: View {
     @State private var errorMessage = ""
     @State private var showingError = false
     
+    @FocusState private var isTextFieldFocused: Bool // Focus state for the TextField
+    
+    var totalScore: Int {
+        usedWords.reduce(0) { $0 + $1.count }
+    }
+    
     var body: some View {
         NavigationStack {
-            List {
-                Section {
-                    TextField("Enter a word", text: $newWord)
-                        .textInputAutocapitalization(.never)
-                }
-                
-                Section {
-                    ForEach(usedWords, id: \.self) { word in
-                        HStack {
-                            Image(systemName: "\(word.count).circle")
-                            Text(word)
+            VStack {
+                List {
+                    Section {
+                        TextField("Enter a word", text: $newWord)
+                            .textInputAutocapitalization(.never)
+                            .focused($isTextFieldFocused) // Bind focus state
+                    }
+                    
+                    Section {
+                        ForEach(usedWords, id: \.self) { word in
+                            HStack {
+                                Image(systemName: "\(word.count).circle")
+                                Text(word)
+                            }
                         }
                     }
                 }
+                .navigationTitle(rootWord)
+                .onSubmit {
+                    addNewWord()
+                    isTextFieldFocused = true // refocus after submitting
+                }
+                .onAppear(perform: startGame)
+                .toolbar {
+                    Button("New Game") {
+                        startGame()
+                    }
+                }
+                // Display the score at the bottom
+                Text("Score: \(totalScore)")
+                    .font(.title)
+                    .padding()
             }
-            .navigationTitle(rootWord)
-            .onSubmit(addNewWord)
-            .onAppear(perform: startGame)
-            .alert(errorTitle, isPresented: $showingError) { } message: {
+                .alert(errorTitle, isPresented: $showingError) { } message: {
                     Text(errorMessage)
-            }
+                }
+            
         }
     }
     func addNewWord() {
@@ -61,6 +83,11 @@ struct ContentView: View {
             return
         }
         
+        guard isOver3(word: answer) else {
+            wordError(title: "Word too short", message: "Words must be at least 4 letters long")
+            return
+        }
+        
         withAnimation {
             usedWords.insert(answer, at: 0)
         }
@@ -77,7 +104,8 @@ struct ContentView: View {
                 
                 // 4. Pick one random word, or use "silkworm" as a sensible default
                 rootWord = allWords.randomElement() ?? "silkworm"
-                
+                usedWords.removeAll() // reset the used words when starting a new game
+                newWord = "" // clears the input field
                 // If we are here everything has worked, so we can exit
                 return
             }
@@ -119,6 +147,9 @@ struct ContentView: View {
         showingError = true
     }
     
+    func isOver3(word: String) -> Bool {
+        return word.count > 3
+    }
     
 }
 
